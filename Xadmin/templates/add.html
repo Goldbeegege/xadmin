@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block css %}
+    .pop{
+            cursor:pointer;
+            color:#79aec8;
+            position:absolute;
+            right:-10px;
+            top:50%;
+            height:20px;
+            margin-top:-10px;
+        }
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <div class="col-md-12">
+            <h1>{% if "change" in request.path_info %}
+                change
+            {% else %}
+                add
+            {% endif %}
+                {{ self.model_name }}
+            </h1>
+            <form method="post" novalidate class="form-horizontal">
+                {% csrf_token %}
+                {% for field in form_obj %}
+                    <div class="form-group" style="border-bottom:solid 1px #eee;padding-bottom:5px;">
+                        <label for="{{ field.id_for_label }}" class="control-label col-xs-2 col-md-1"
+                               style="text-align: left">{{ field.label }}</label>
+                        <div class="col-md-3 col-xs-5" style="position:relative;">
+                            {{ field }}
+                            {% load pop %}
+                            {% is_pop field %}
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="form-group" style="background-color:#eee;padding:10px;border-radius:5px;">
+                    <div class="pull-left">
+                        {% if "change" in request.path_info %}
+                            <a href="/xadmin/{{ self.app_name }}/{{ self.model_name }}/delete/{{ nid }}/" class="btn btn-danger">Delete</a>
+                        {% endif %}
+                    </div>
+                    <div class="pull-right">
+                        <button type="submit" class="btn btn-info">Save</button>
+                    </div>
+                </div>
+            </form>
+
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/jquery-3.3.1.js"></script>
+    <script src="/static/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        $(".pop").click(function(){
+            var target = $(this).attr("target");
+            window.open(target,"","width=888 height=500 left=200 top=100")
+        });
+        function pop(val,text,target){
+            var tag = "#"+target;
+            console.log($(tag));
+            var opt = document.createElement("option");
+            $(tag).append(opt);
+            $(opt).attr("val",val);
+            $(opt).html(text).attr("selected","selected")
+
+        }
+    </script>
+{% endblock %}

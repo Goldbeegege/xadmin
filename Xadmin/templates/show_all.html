@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/plugins/fontawesome/css/font-awesome.css">
+    <style>
+        .header{
+            height:50px;
+            background-color:#417690;
+        }
+
+        .app{
+            background-color: #79aec8;
+            color:white;
+        }
+        .model{
+            color:#447e9b;
+            font-weight:bold;
+        }
+        .fa-plus{
+            color:#70bf2b;
+        }
+        .fa-pencil{
+            color:#efb911;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+
+</div>
+
+<div class="container">
+<h2>Site Xadministration</h2>
+    <div class="row">
+        <div class="col-md-6">
+            {% for table_key,table_val in new_table.items %}
+                <table class="table" id="{{ table_key }}">
+                    <thead>
+                    <tr>
+                        <th class="app">{{ table_key.upper }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for model_name in table_val %}
+                        <tr>
+                            <td class="model">
+                                <a href="/xadmin/{{ table_key }}/{{ model_name }}/">{{ model_name.capitalize }}</a>
+                                <span class="pull-right">
+                                    <a href="/xadmin/{{ table_key }}/{{ model_name }}/add/">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                        <span>add</span></a>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <a href="/xadmin/{{ table_key }}/{{ model_name }}/">
+                                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                                        <span>change</span>
+                                    </a>
+
+                                </span>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+                {% endfor %}
+        </div>
+        <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">Recent actions</div>
+                <div class="panel-body">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

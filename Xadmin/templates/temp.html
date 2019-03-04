@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script src="/static/js/jquery-3.3.1.js"></script>
+<script>
+    $(function(){
+        window.opener.pop({{ val }},'{{ text }}','{{ target }}');
+        window.close()
+    })
+
+</script>
+</body>
+</html>

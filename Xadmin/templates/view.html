@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block css %}
+    .add_pop{
+    font-weight:normal;
+    font-size:11px;
+    display: inline-block;
+    width:120px;
+    height:30px;
+    background-color:gray;
+    text-align:center;
+    line-height:30px;
+    border-radius:15px;
+    color:white;
+    }
+    .previous,.next,.start,.end{
+    cursor:pointer;
+    }
+
+    .filter,.active{
+    color:gold;
+    }
+
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="col-md-12">
+            <h2>Select {{ self.model_name }} to change
+                <a href="/xadmin/{{ self.app_name }}/{{ self.model_name }}/add/"
+                   class="pull-right add_pop">ADD {{ self.model_name.upper }}
+                    <i class="fa fa-plus" aria-hidden="true"></i>
+                </a>
+            </h2>
+        </div>
+        <div class="col-md-9">
+            <div style="height:40px;margin:20px 0;">
+                <!--action-->
+                <div class="col-md-5" style="padding:0">
+                    <form class="form-inline">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <select id="action" class="form-control" style="border-radius:4px;" name="action">
+                                    <option value="0">---------------------------</option>
+                                    {% for item in new_action_list %}
+                                        <option value="{{ item.name }}">{{ item.nick_name }}</option>
+                                    {% endfor %}
+
+                                </select>
+                            </div>
+                        </div>
+                        <span id="action-submit" class="btn btn-primary">GO</span>
+                    </form>
+                </div>
+                <!--search-->
+                {% if self.search_fields %}
+                    <div class="col-md-5" style="padding:0">
+                        <form class="form-inline">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="kw" value="{{ self.key_word }}"
+                                           style="border-radius:4px;">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">search</button>
+                        </form>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <table class="table table-striped table-condensed">
+                <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    {% for header in header_list %}
+                        <th>{{ header }}</th>
+                    {% endfor %}
+
+                </tr>
+                </thead>
+                <tbody>
+                {% for body in self.display_body_list %}
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        {% for each in body %}
+                            <td>{{ each }}</td>
+                        {% endfor %}
+
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+
+            <nav aria-label="Page navigation" class="pull-right">
+                <ul class="pagination" current="{{ current_page }}" end="{{ total_page }}">
+                    <li class="start"><span>首页</span></li>
+                    <li class="previous"><span aria-label="Previous">上一页</span></li>
+                    {{ temp }}
+                    <li class="next"><span aria-label="Next">下一页</span></li>
+                    <li class="end"><span>尾页</span></li>
+                </ul>
+            </nav>
+        </div>
+        <!--过滤-->
+        {% if filter_conditions %}
+            <div class="col-md-3" id="filter">
+                <div class="well" style="margin-top:20px;">
+                    {% for title,vals in filter_conditions.items %}
+                        <p>By {{ title.upper }}</p>
+                        {% for val in vals %}
+                            <p>{{ val }}</p>
+                        {% endfor %}
+
+
+                    {% endfor %}
+
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/jquery-3.3.1.js"></script>
+    <script src="/static/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            var current = $("ul").attr("current");
+            var end = $("ul").attr("end");
+            $(".previous").click(function () {
+                if (current !== "1") {
+                    var page = parseInt(current) - 1;
+                    href(page, $(this))
+                }
+            });
+            $(".next").click(function () {
+                if (current !== end) {
+                    var page = parseInt(current) + 1;
+                    href(page, $(this))
+                }
+            });
+
+            $(".start").click(function () {
+                if (current !== "1") {
+                    var params = location.search;
+                    var start = params.replace(/page=\d+/,"page=1");
+                    var path = location.pathname;
+                    location.href = path + start
+                }
+            });
+            $(".end").click(function () {
+                if (current !== end) {
+                    location.href = $("li").find("a").last().attr("href")
+                }
+            });
+
+            function href(page, tag) {
+                var target = $(tag).siblings("[pk=" + page + "]");
+                location.href = $(target).find("a").attr("href")
+            }
+        });
+        $("#select-all").click(function () {
+            if ($(this).prop("checked")) {
+                $("tbody").find("input[type='checkbox']").prop("checked", true)
+            } else {
+                $("tbody").find("input[type='checkbox']").prop("checked", false)
+            }
+
+        });
+
+        $("#action-submit").click(function () {
+            var checked_array = [];
+            if ($("#action").val() !== "0") {
+                var action = $("#action").val();
+                $("table tbody").find(":checked").each(function () {
+                    var pk = $(this).parent().siblings("td").find(".pk");
+                    checked_array.push(pk.attr("pk"));
+                });
+                if (checked_array.length !== 0) {
+                    $.ajax({
+                        url: "",
+                        type: "post",
+                        data: {action: action, pk_list: JSON.stringify(checked_array)},
+                        success: function (arg) {
+                            if (arg["status"]) {
+                                location.reload()
+                            }
+                        }
+                    })
+                }
+            }
+        })
+
+    </script>
+{% endblock %}
