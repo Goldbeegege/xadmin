@@ -5,7 +5,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 from django.conf.urls import url
-from django.shortcuts import HttpResponse,render,redirect
+from django.shortcuts import render,redirect
 from django.utils.safestring import mark_safe
 from modelform import create_model_form
 from paginator import XadminPagintor
@@ -15,7 +15,6 @@ import json
 from django.http import JsonResponse
 import copy
 from urllib import urlencode
-from django.db.models import ManyToManyField
 
 
 class BaseAdmin(object):
@@ -134,18 +133,17 @@ class BaseAdmin(object):
         return new_action_list
 
     def filter_func(self,request):
-        params = copy.deepcopy(request.GET)
-        if params.get("page"):del params["page"]
         if self.filter_list:
             fc_temp = {}
             for field in self.filter_list:
                 field_obj = self.model._meta.get_field(field)
                 try:
+                    params = copy.deepcopy(request.GET)
+                    if params.get("page"): del params["page"]
                     rel_obj = field_obj.rel.to.objects.all()
                     each = self.get_related_html(field,params,rel_obj )
                     fc_temp[field] = each
                 except Exception as e:
-                    print e
                     raise Exception("%s has no related objects"%field_obj)
             return fc_temp
 
@@ -153,10 +151,14 @@ class BaseAdmin(object):
         temp = []
         fc = params.get(field + "_id","")
         if not fc:
+            params[field+"_id"] = "all"
+            temp.append(mark_safe("<a class='active' href='?%s'>%s</a>" % (urlencode(params), "ALL")))
+        elif fc == "all":
             temp.append(mark_safe("<a class='active' href='?%s'>%s</a>" % (urlencode(params), "ALL")))
         else:
-            del params[field + "_id"]
-            temp.append(mark_safe("<a href='?%s'>%s</a>" % (urlencode(params), "ALL")))
+            new_params = copy.deepcopy(params)
+            new_params[field+"_id"] = "all"
+            temp.append(mark_safe("<a href='?%s'>%s</a>" % (urlencode(new_params), "ALL")))
         for rel in rels:
             if str(rel.id) == str(fc):
                 cls="class='active'"
@@ -165,7 +167,6 @@ class BaseAdmin(object):
             params.update({field + "_id":rel.id})
             href = urlencode(params)
             temp.append(mark_safe("<a %s href='?%s'>%s</a>" % (cls,href, rel)))
-        params[field + "_id"] = fc
         return temp
 
     def filter_new_func(self,request):
@@ -174,12 +175,9 @@ class BaseAdmin(object):
         for param in params:
             if param.endswith("_id"):
                 re_param = param.split("_",1)[0]
-                field_obj = self.model._meta.get_field(re_param)
-                if params[param]:
+                if params[param] and params[param] != "all":
                     pid = params[param]
-                    if isinstance(field_obj,ManyToManyField):
-                        param = re_param
-                    q.children.append((param,pid))
+                    q.children.append((re_param,pid))
                 else:
                     continue
 
@@ -187,8 +185,6 @@ class BaseAdmin(object):
 
     @csrf_exempt
     def view(self,request):
-        # action
-        new_action_list = self.action
         if request.method == "GET":
             # 搜索
             conditions = self.search_func(request)

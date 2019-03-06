@@ -41,7 +41,7 @@
                             <div class="input-group">
                                 <select id="action" class="form-control" style="border-radius:4px;" name="action">
                                     <option value="0">---------------------------</option>
-                                    {% for item in new_action_list %}
+                                    {% for item in self.action %}
                                         <option value="{{ item.name }}">{{ item.nick_name }}</option>
                                     {% endfor %}
 
@@ -118,7 +118,6 @@
                 </div>
             </div>
         {% endif %}
-
     </div>
 
 {% endblock %}
